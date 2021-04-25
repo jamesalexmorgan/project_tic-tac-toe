@@ -1,8 +1,7 @@
-"use strict";
+'use strict';
 
 const gameBoard = (() => {
-  const gameGridArray = [];
-  for (let i = 0; i < 9; i++) gameGridArray.push("");
+  const gameGridArray = Array(9).fill('');
 
   const xLocations = [];
   const oLocations = [];
@@ -32,21 +31,19 @@ const gameBoard = (() => {
       updateSymbolLocation(squareSelected);
       updateGridArray(squareSelected);
       render(squareSelected);
-      if (isPlayerWin()) endGame("win");
-      else if (isATie()) endGame("tie");
+      if (isPlayerWin()) endGame('win');
+      else if (isATie()) endGame('tie');
       else switchCurrentPlayer();
     }
   };
 
-  const isMoveValid = (squareSelected) => {
-    if (gameGridArray[squareSelected] !== "") return false;
-    else return true;
-  };
+  const isMoveValid = (squareSelected) => gameGridArray[squareSelected] === '';
+
+  const getCurrentSymbolLocations = () => (currentPlayer == player1 ? xLocations : oLocations);
 
   const updateSymbolLocation = (squareSelected) => {
     const indexSelected = parseInt(squareSelected);
-    if (currentPlayer == player1) xLocations.push(indexSelected);
-    else oLocations.push(indexSelected);
+    getCurrentSymbolLocations().push(indexSelected);
   };
 
   const updateGridArray = (squareSelected) => {
@@ -60,45 +57,26 @@ const gameBoard = (() => {
 
   const isPlayerWin = () => {
     // check if any winConditionArray is subset of X or O location arrays
-    let currentSymbolLocations;
-    if (currentPlayer == player1) currentSymbolLocations = xLocations;
-    else currentSymbolLocations = oLocations;
-    let isPlayerWin = false;
-
-    winConditionArrays.forEach((winCondition) => {
-      if (isArraySubsetOfAnother(winCondition, currentSymbolLocations)) {
-        isPlayerWin = true;
-        return;
-      }
-    });
-    return isPlayerWin;
+    const winCondition = winConditionArrays.find((winCondition) =>
+      isArraySubsetOfAnother(winCondition, getCurrentSymbolLocations()),
+    );
+    return Boolean(winCondition);
   };
 
-  const isATie = () => {
-    if (xLocations.length === 5) return true;
-    else return false;
-  };
+  const isATie = () => xLocations.length === 5;
 
   const isArraySubsetOfAnother = (subset, superset) => {
-    for (let i = 0; i < subset.length; i++) {
-      for (let j = 0; j < superset.length; j++) {
-        if (subset[i] == superset[j]) {
-          break;
-        } else if (j == superset.length - 1) return false;
-      }
-    }
-    return true;
+    const foundItems = subset.filter((subsetItem) => superset.find((superSetItem) => superSetItem === subsetItem));
+    return foundItems.length === subset.length;
   };
 
   const endGame = (result) => {
-    if (result === "win") displayController.displayResult(currentPlayer.name);
-    else displayController.displayResult("tie");
+    displayController.displayResult(result === 'win' ? currentPlayer.name : 'tie');
     displayController.removeListeners();
   };
 
   const switchCurrentPlayer = () => {
-    if (currentPlayer == player1) currentPlayer = player2;
-    else currentPlayer = player1;
+    currentPlayer = currentPlayer === player1 ? player2 : player1;
   };
 
   return {
@@ -108,25 +86,24 @@ const gameBoard = (() => {
 })();
 
 const displayController = (() => {
-  const gameSquares = document.querySelectorAll(".game-square");
-  const contentDiv = document.querySelector(".content");
+  const gameSquares = document.querySelectorAll('.game-square');
+  const contentDiv = document.querySelector('.content');
 
   const addListeners = () => {
     gameSquares.forEach((square) => {
-      square.addEventListener("click", gameBoard.playMove);
+      square.addEventListener('click', gameBoard.playMove);
     });
   };
 
   const removeListeners = () => {
     gameSquares.forEach((square) => {
-      square.removeEventListener("click", gameBoard.playMove);
+      square.removeEventListener('click', gameBoard.playMove);
     });
   };
 
   const displayResult = (result) => {
-    const resultText = document.createElement("h1");
-    if (result === "tie") resultText.textContent = "It's a tie!";
-    else resultText.textContent = `${result} is the winner!`;
+    const resultText = document.createElement('h1');
+    resultText.textContent = result === 'tie' ? "It's a tie!" : `${result} is the winner!`;
     contentDiv.insertBefore(resultText, contentDiv.firstChild);
   };
 
@@ -137,8 +114,8 @@ const Player = (name, symbol) => {
   return { name, symbol };
 };
 
-const player1 = Player("Player 1", "X");
-const player2 = Player("Player 2", "O");
+const player1 = Player('Player 1', 'X');
+const player2 = Player('Player 2', 'O');
 
 gameBoard.startNewGame();
 
